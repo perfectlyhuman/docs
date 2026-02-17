@@ -1,97 +1,56 @@
 ---
 title: "Introduction"
-description: "Welcome to the new home for your documentation"
+description: "Sales intelligence that tells you what to say when they answer"
 ---
 
-## Setting up
+## What is RapportAPI?
 
-Get your documentation site up and running in minutes.
+RapportAPI is a sales intelligence API. Send us a person's identifier — email, LinkedIn URL, or name + company — and get back a deep intelligence report in ~2-3 minutes:
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+- **Icebreaker scripts** sourced from real online activity
+- **Communication style guide** tailored to the prospect
+- **Background intelligence** (career, education, interests, family)
+- **Topics to avoid** so you don't step on landmines
 
-## Make it yours
+Every insight is sourced from 19+ verified data providers and public information. No guessing, no generic DISC profiles — real, specific details about real people.
 
-Design a docs site that looks great and empowers your users.
+## How it works
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<Steps>
+  <Step title="Submit a research request">
+    POST to `/research` with an email, LinkedIn URL, or name + company. You get back a `task_id` immediately.
+  </Step>
+  <Step title="Wait for results">
+    The pipeline runs asynchronously (~2-3 minutes). Poll with `GET /research/{task_id}` or provide a `callback_url` to receive a webhook when complete.
+  </Step>
+  <Step title="Use the intelligence">
+    Get structured JSON with icebreakers, communication style, background data, and a hosted HTML report URL.
+  </Step>
+</Steps>
+
+## Quick links
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Run your first lookup in 5 minutes.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Authentication" icon="key" href="/authentication">
+    Get your API key and authenticate requests.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Full endpoint documentation with request/response schemas.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Webhooks" icon="webhook" href="/webhooks">
+    Receive results automatically when research completes.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Pricing
 
-Everything you need to create world-class documentation.
+| Plan | Price | Credits/mo | Seats |
+|------|-------|------------|-------|
+| **Solo** | $49/mo | 20 | 1 |
+| **Team** | $299/mo | 150 | 3 |
+| **Enterprise** | Custom | Custom | Unlimited |
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+1 credit = 1 lookup. All plans include a **free 3-day trial with 3 credits**. [Sign up to get started](https://rapportapi.com/auth/sign-up).

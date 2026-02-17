@@ -1,16 +1,19 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "RapportAPI",
+    "description": "Sales intelligence API. Submit a person's identifier and receive deep intelligence reports with icebreakers, communication style guides, and background research.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "RapportAPI Support",
+      "email": "support@rapportapi.com",
+      "url": "https://rapportapi.com"
+    }
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://api.rapportapi.com",
+      "description": "Production"
     }
   ],
   "security": [
@@ -19,76 +22,78 @@
     }
   ],
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/research": {
       "post": {
-        "description": "Creates a new plant in the store",
+        "operationId": "submitResearch",
+        "summary": "Submit research request",
+        "description": "Start a new research lookup for a prospect. Requires at least one identifier: email, linkedin_url, or full_name + company. Returns a task_id for polling. Costs 1 credit.",
         "requestBody": {
-          "description": "Plant to add to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/ResearchRequest"
+              },
+              "example": {
+                "contact_data": {
+                  "email": "jane@example.com"
+                },
+                "callback_url": "https://yourapp.com/webhooks/rapport",
+                "callback_secret": "your_webhook_secret"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
-          "200": {
-            "description": "plant response",
+          "202": {
+            "description": "Research request accepted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plant"
+                  "$ref": "#/components/schemas/ResearchSubmitted"
+                },
+                "example": {
+                  "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "prospect_id": null,
+                  "status": "pending"
                 }
               }
             }
           },
           "400": {
-            "description": "unexpected error",
+            "description": "Invalid request — missing required identifiers",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "detail": "Invalid request body: at least one identifier required (email, linkedin_url, or full_name + company)",
+                  "status_code": 400
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "detail": "Insufficient credits. Please purchase more at rapportapi.com.",
+                  "status_code": 402
                 }
               }
             }
@@ -96,28 +101,36 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+    "/research/{task_id}": {
+      "get": {
+        "operationId": "getResearch",
+        "summary": "Get research status and results",
+        "description": "Poll a research task by ID. Returns the current status and, when completed, the full intelligence report with icebreakers, communication style, and background data.",
         "parameters": [
           {
-            "name": "id",
+            "name": "task_id",
             "in": "path",
-            "description": "ID of plant to delete",
             "required": true,
+            "description": "The task ID returned from POST /research",
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
+          "200": {
+            "description": "Task status and results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchResult"
+                }
+              }
+            }
           },
-          "400": {
-            "description": "unexpected error",
+          "401": {
+            "description": "Authentication failed",
             "content": {
               "application/json": {
                 "schema": {
@@ -125,28 +138,20 @@
                 }
               }
             }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
-        "requestBody": {
-          "description": "Plant added to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "detail": "Task not found",
+                  "status_code": 404
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
           }
         }
       }
@@ -154,55 +159,301 @@
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "ContactData": {
         "type": "object",
+        "description": "Contact identifiers. At least one of: email, linkedin_url, or full_name + company.",
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address (sufficient as sole identifier)"
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
+          "linkedin_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "LinkedIn profile URL (sufficient as sole identifier, unlocks post analysis)"
+          },
+          "full_name": {
+            "type": "string",
+            "description": "Full name (requires company)"
+          },
+          "company": {
+            "type": "string",
+            "description": "Company name (requires full_name)"
+          },
+          "first_name": {
+            "type": "string",
+            "description": "First name (optional, improves matching)"
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Last name (optional, improves matching)"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number (optional, improves enrichment)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Job title (optional, improves enrichment)"
+          },
+          "location": {
+            "type": "string",
+            "description": "Location (optional, improves enrichment)"
+          },
+          "twitter_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Twitter/X profile URL (optional, unlocks tweet analysis)"
+          },
+          "facebook_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Facebook profile URL (optional)"
           }
         }
       },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
+      "ResearchRequest": {
+        "type": "object",
+        "required": ["contact_data"],
+        "properties": {
+          "contact_data": {
+            "$ref": "#/components/schemas/ContactData"
           },
-          {
-            "required": [
-              "id"
-            ],
+          "prospect_id": {
+            "type": "string",
+            "description": "Your internal ID for this prospect (echoed back in responses and webhooks)"
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to receive a webhook POST when research completes"
+          },
+          "callback_secret": {
+            "type": "string",
+            "description": "Bearer token sent in the Authorization header of webhook callbacks"
+          }
+        }
+      },
+      "ResearchSubmitted": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique task ID for polling"
+          },
+          "prospect_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Your prospect_id if provided"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending"],
+            "description": "Initial status is always 'pending'"
+          }
+        }
+      },
+      "ResearchResult": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "running", "completed", "failed"],
+            "description": "Current task status"
+          },
+          "prospect_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "processing_time_seconds": {
+            "type": "number",
+            "nullable": true
+          },
+          "report_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Public URL to the HTML report (only when completed)"
+          },
+          "result": {
+            "$ref": "#/components/schemas/IntelligenceReport"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error message (only when failed)"
+          }
+        }
+      },
+      "IntelligenceReport": {
+        "type": "object",
+        "nullable": true,
+        "description": "Full intelligence report (only present when status is 'completed')",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "partial", "error"]
+          },
+          "overall_confidence": {
+            "type": "string",
+            "enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]
+          },
+          "outreach_intelligence": {
+            "type": "object",
+            "description": "Actionable sales intelligence",
+            "properties": {
+              "icebreakers": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Icebreaker"
+                }
+              },
+              "communication_style": {
+                "type": "string",
+                "description": "How to communicate with this person"
+              },
+              "best_approach": {
+                "type": "string",
+                "description": "Recommended outreach approach"
+              },
+              "topics_to_avoid": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Sensitive topics to steer clear of"
+              }
+            }
+          },
+          "professional": {
             "type": "object",
             "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
+              "current_title": { "type": "string", "nullable": true },
+              "current_company": { "type": "string", "nullable": true },
+              "current_location": { "type": "string", "nullable": true },
+              "industry": { "type": "string", "nullable": true },
+              "skills": { "type": "array", "items": { "type": "string" } },
+              "achievements": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "personal": {
+            "type": "object",
+            "properties": {
+              "interests": { "type": "array", "items": { "type": "string" } },
+              "hobbies": { "type": "array", "items": { "type": "string" } },
+              "sports_teams": { "type": "array", "items": { "type": "string" } },
+              "causes": { "type": "array", "items": { "type": "string" } },
+              "memberships": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "education": {
+            "type": "object",
+            "properties": {
+              "entries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "institution": { "type": "string" },
+                    "degree": { "type": "string", "nullable": true },
+                    "field_of_study": { "type": "string", "nullable": true },
+                    "graduation_year": { "type": "integer", "nullable": true }
+                  }
+                }
+              },
+              "certifications": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "family": {
+            "type": "object",
+            "properties": {
+              "children_count": { "type": "integer", "nullable": true },
+              "pets": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "social_media": {
+            "type": "object",
+            "properties": {
+              "linkedin": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string", "nullable": true },
+                  "bio": { "type": "string", "nullable": true },
+                  "post_count": { "type": "integer" },
+                  "posts_summary": { "type": "string", "nullable": true }
+                }
+              },
+              "twitter": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string", "nullable": true },
+                  "bio": { "type": "string", "nullable": true },
+                  "twitter_posts_summary": { "type": "string", "nullable": true }
+                }
               }
             }
           }
-        ]
+        }
       },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
+      "Icebreaker": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
+          "angle": {
+            "type": "string",
+            "description": "The topic angle (e.g., 'Marathon Runner', 'Youth Baseball Coach')"
           },
-          "message": {
-            "type": "string"
+          "opening_line": {
+            "type": "string",
+            "description": "Ready-to-use opening line for outreach"
+          },
+          "why_effective": {
+            "type": "string",
+            "description": "Why this icebreaker works for this person"
+          },
+          "source_type": {
+            "type": "string",
+            "description": "Where the insight was sourced from"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["HIGH", "MEDIUM", "LOW"]
+          },
+          "topic_category": {
+            "type": "string",
+            "description": "Category (e.g., 'personal_interests', 'professional', 'community')"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "Human-readable error message"
+          },
+          "status_code": {
+            "type": "integer",
+            "description": "HTTP status code"
           }
         }
       }
@@ -210,7 +461,8 @@
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
-        "scheme": "bearer"
+        "scheme": "bearer",
+        "description": "API key with rapi_live_ prefix"
       }
     }
   }

@@ -1,0 +1,45 @@
+---
+title: "Credits"
+description: "How credits and billing work"
+---
+
+## How credits work
+
+Each research lookup costs **1 credit**. Credits are included with your subscription plan and reset monthly.
+
+| Plan | Credits/mo | Price |
+|------|------------|-------|
+| **Solo** | 20 | $49/mo |
+| **Team** | 150 | $299/mo |
+| **Enterprise** | Custom | Custom |
+
+## Free trial
+
+All plans include a **free 3-day trial** with 3 credits:
+
+1. Sign up and choose a plan
+2. Get 3 credits immediately to try the API
+3. Your subscription starts 3 days later
+4. Cancel before day 3 and you won't be charged
+
+## Credit lifecycle
+
+- **Allocated** when your billing cycle starts (or on signup for trial credits)
+- **Deducted** when you submit a research request (1 credit per lookup)
+- **Refunded** automatically if a research request fails
+- **Reset** at the start of each billing cycle (credits don't roll over)
+
+## Checking your balance
+
+Your current credit balance is visible in the [dashboard](https://rapportapi.com/home). The API also returns a `402` error when you're out of credits:
+
+```json
+{
+  "detail": "Insufficient credits. Please purchase more at rapportapi.com.",
+  "status_code": 402
+}
+```
+
+## Failed requests
+
+If a research request fails after credits are deducted, we automatically refund the credit to your account. You'll see this as a `refund` transaction in your usage history.

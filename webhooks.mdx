@@ -1,0 +1,121 @@
+---
+title: "Webhooks"
+description: "Receive research results automatically when they're ready"
+---
+
+## Overview
+
+Instead of polling `GET /research/{task_id}`, you can provide a `callback_url` when submitting research. We'll POST the results to your URL when the research completes (or fails).
+
+## Setting up webhooks
+
+Include `callback_url` (and optionally `callback_secret`) in your research request:
+
+```bash
+curl -X POST https://api.rapportapi.com/research \
+  -H "Authorization: Bearer rapi_live_YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_data": {
+      "email": "jane@example.com"
+    },
+    "callback_url": "https://yourapp.com/webhooks/rapport",
+    "callback_secret": "your_webhook_secret_here"
+  }'
+```
+
+## Callback payload
+
+### Success
+
+When research completes successfully, we POST:
+
+```json
+{
+  "prospect_id": "your-id-if-provided",
+  "job_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "success",
+  "service": "sales-intelligence",
+  "total_cost": 0.45,
+  "full_name": "Jane Doe",
+  "icebreaker_count": 5,
+  "icebreakers": [
+    {
+      "angle": "Marathon Runner",
+      "opening_line": "I saw you just finished the Chicago Marathon...",
+      "topic_category": "personal_interests",
+      "confidence": "HIGH"
+    }
+  ],
+  "research_stages_completed": 4,
+  "social_media": {
+    "linkedin_posts": 12,
+    "twitter_posts": 8
+  }
+}
+```
+
+### Failure
+
+If research fails, we POST:
+
+```json
+{
+  "prospect_id": "your-id-if-provided",
+  "job_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "error",
+  "service": "sales-intelligence",
+  "error": "Description of what went wrong"
+}
+```
+
+<Note>
+  When a research request fails, credits are automatically refunded to your account.
+</Note>
+
+## Authentication
+
+If you provide a `callback_secret` in your research request, we include it as a Bearer token in the callback:
+
+```
+Authorization: Bearer your_webhook_secret_here
+Content-Type: application/json
+```
+
+Verify this token in your webhook handler to confirm the request came from RapportAPI.
+
+## Webhook handler example
+
+```python Python
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+WEBHOOK_SECRET = "your_webhook_secret_here"
+
+@app.route("/webhooks/rapport", methods=["POST"])
+def handle_rapport_webhook():
+    # Verify the callback secret
+    auth = request.headers.get("Authorization", "")
+    if auth != f"Bearer {WEBHOOK_SECRET}":
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json
+
+    if data["status"] == "success":
+        # Process the intelligence
+        icebreakers = data["icebreakers"]
+        print(f"Got {len(icebreakers)} icebreakers for {data['full_name']}")
+        # Store results, notify your user, etc.
+    else:
+        # Handle failure
+        print(f"Research failed: {data['error']}")
+
+    return jsonify({"received": True}), 200
+```
+
+## Best practices
+
+- **Always verify** the `callback_secret` to ensure requests come from RapportAPI
+- **Respond quickly** with a 200 status — do heavy processing asynchronously
+- **Handle retries** — your endpoint should be idempotent (we may retry on timeout)
+- **Use HTTPS** — callback URLs must use HTTPS in production

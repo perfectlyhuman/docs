@@ -1,33 +1,54 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Reference"
+description: "Complete reference for the RapportAPI endpoints"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
-
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+```
+https://api.rapportapi.com
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All endpoints require a Bearer token:
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
 ```
+Authorization: Bearer rapi_live_YOUR_API_KEY
+```
+
+See [Authentication](/authentication) for details on getting and managing your API key.
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/research` | Submit a research request (costs 1 credit) |
+| `GET` | `/research/{task_id}` | Get research status and results |
+
+## Request flow
+
+```
+POST /research → 202 (task_id)
+        ↓
+Poll GET /research/{task_id} every 4-5s
+        ↓
+status: "pending" → "running" → "completed"
+```
+
+Processing takes ~2-3 minutes. Alternatively, provide a `callback_url` to receive a [webhook](/webhooks) when complete.
+
+## Status codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `202` | Research accepted, processing asynchronously |
+| `400` | Invalid request (missing required fields) |
+| `401` | Invalid or missing API key |
+| `402` | Insufficient credits |
+| `404` | Task not found |
+
+## Rate limits
+
+There are no per-key rate limits. Requests are processed concurrently. If you need high-volume throughput, contact us about an Enterprise plan.
