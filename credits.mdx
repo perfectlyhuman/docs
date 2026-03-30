@@ -5,33 +5,35 @@ description: "How credits and billing work"
 
 ## How credits work
 
-Each research lookup costs **1 credit**. Credits are included with your subscription plan and reset monthly.
+RapportAPI uses simple credit packs — no subscriptions. Each research lookup costs **1 credit**. Buy credits in bulk for a better per-report price.
 
-| Plan | Credits/mo | Price |
-|------|------------|-------|
-| **Solo** | 20 | $49/mo |
-| **Team** | 150 | $299/mo |
-| **Enterprise** | Custom | Custom |
+## Pricing
 
-## Free trial
+| Pack | Reports | Per report | Total |
+|------|---------|------------|-------|
+| **Starter** | 5 | $5.00 | $25 |
+| **Growth** | 50 | $2.50 | $125 |
+| **Scale** | 500 | $1.25 | $625 |
+| **Enterprise** | Custom | Volume discounts | [Contact Sales](mailto:support@rapportapi.com) |
 
-All plans include a **free 3-day trial** with 3 credits:
+<Tip>
+  The more you buy, the more you save — up to **75% off** with the Scale pack.
+</Tip>
 
-1. Sign up and choose a plan
-2. Get 3 credits immediately to try the API
-3. Your subscription starts 3 days later
-4. Cancel before day 3 and you won't be charged
+## Free credits
+
+New accounts get **3 free credits** to try the API — no payment required.
 
 ## Credit lifecycle
 
-- **Allocated** when your billing cycle starts (or on signup for trial credits)
+- **Added** when you purchase a credit pack
 - **Deducted** when you submit a research request (1 credit per lookup)
 - **Refunded** automatically if a research request fails
-- **Reset** at the start of each billing cycle (credits don't roll over)
+- **No expiration** — credits never expire and don't reset
 
 ## Checking your balance
 
-Your current credit balance is visible in the [dashboard](https://rapportapi.com/home). The API also returns a `402` error when you're out of credits:
+Your current credit balance is visible in the [dashboard](https://rapportapi.com/home). The API returns a `402` error when you're out of credits:
 
 ```json
 {
@@ -43,3 +45,7 @@ Your current credit balance is visible in the [dashboard](https://rapportapi.com
 ## Failed requests
 
 If a research request fails after credits are deducted, we automatically refund the credit to your account. You'll see this as a `refund` transaction in your usage history.
+
+## Buy credits
+
+Purchase credit packs from the [dashboard](https://rapportapi.com/home) or [contact us](mailto:support@rapportapi.com) for enterprise volume pricing.
