@@ -180,6 +180,64 @@ You need at least one of these:
 
 Additional fields (`phone`, `title`, `location`, `twitter_url`) improve enrichment quality but aren't required.
 
+## Test mode
+
+Add `"is_test": true` to your request to get a dummy completed response without using credits. This is useful for testing your integration end-to-end.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.rapportapi.com/research \
+  -H "Authorization: Bearer rapi_live_YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_data": {
+      "email": "test@example.com"
+    },
+    "is_test": true
+  }'
+```
+
+```python Python
+response = requests.post(
+    "https://api.rapportapi.com/research",
+    headers={
+        "Authorization": "Bearer rapi_live_YOUR_API_KEY",
+        "Content-Type": "application/json"
+    },
+    json={
+        "contact_data": {
+            "email": "test@example.com"
+        },
+        "is_test": True
+    }
+)
+```
+
+```javascript JavaScript
+const response = await fetch("https://api.rapportapi.com/research", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer rapi_live_YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    contact_data: {
+      email: "test@example.com"
+    },
+    is_test: true
+  })
+});
+```
+
+</CodeGroup>
+
+The response returns immediately with `status: "completed"` and a `test-` prefixed task ID. Poll that task ID to get a realistic dummy intelligence report with sample icebreakers, professional info, and personal interests.
+
+<Note>
+  Test requests still require a valid API key for authentication, but no credits are deducted.
+</Note>
+
 ## Next steps
 
 <CardGroup cols={2}>

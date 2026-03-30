@@ -232,6 +232,11 @@
           "callback_secret": {
             "type": "string",
             "description": "Bearer token sent in the Authorization header of webhook callbacks"
+          },
+          "is_test": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, returns a dummy completed response immediately without using credits. Useful for testing your integration."
           }
         }
       },
