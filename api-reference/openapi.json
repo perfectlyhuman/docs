@@ -323,6 +323,64 @@
             "type": "string",
             "enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]
           },
+          "contact": {
+            "type": "object",
+            "description": "Identity facts about the prospect, including reference photos for downstream personalization (e.g. character generators).",
+            "properties": {
+              "full_name": { "type": "string" },
+              "first_name": { "type": "string" },
+              "initials": { "type": "string", "description": "e.g. 'AC'" },
+              "title": { "type": "string", "nullable": true },
+              "company": { "type": "string", "nullable": true },
+              "company_detail": { "type": "string", "nullable": true },
+              "email": { "type": "string", "nullable": true },
+              "phone": { "type": "string", "nullable": true },
+              "phone_verified": { "type": "boolean" },
+              "linkedin_url": { "type": "string", "nullable": true },
+              "linkedin_handle": { "type": "string", "nullable": true },
+              "linkedin_verified": { "type": "boolean" },
+              "location": { "type": "string", "nullable": true },
+              "location_short": { "type": "string", "nullable": true },
+              "social_handles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["platform", "handle"],
+                  "properties": {
+                    "platform": { "type": "string" },
+                    "handle": { "type": "string" },
+                    "url": { "type": "string", "nullable": true }
+                  }
+                }
+              },
+              "profile_image_url": {
+                "type": "string",
+                "nullable": true,
+                "description": "Single primary reference photo. Durable URL hosted on our CDN — does not decay. Same value as `images[0].url` when present."
+              },
+              "images": {
+                "type": "array",
+                "maxItems": 5,
+                "description": "Up to 5 distinct reference photos with source attribution. All URLs are durable and hosted on our CDN — safe to feed directly into character generators or other downstream image consumers without worrying about hotlink-blocks or expiration. Empty array if no images were resolvable.",
+                "items": {
+                  "type": "object",
+                  "required": ["url", "source", "type"],
+                  "properties": {
+                    "url": { "type": "string", "format": "uri" },
+                    "source": {
+                      "type": "string",
+                      "enum": ["linkedin", "instagram", "twitter", "gravatar", "fullcontact", "github"]
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": ["profile", "cover"]
+                    }
+                  }
+                }
+              },
+              "sources_summary": { "type": "string", "description": "e.g. '14 sources analyzed'" }
+            }
+          },
           "outreach_intelligence": {
             "type": "object",
             "description": "Actionable sales intelligence",
